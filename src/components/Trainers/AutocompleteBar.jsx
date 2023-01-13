@@ -1,16 +1,16 @@
 import { useState } from "react";
 
-const AutoComplete = ({ data, handlePokemon }) => {
+const AutoCompleteBar = ({ items, selectItem }) => {
     
   const [suggestions, setSuggestions] = useState([]);
   const [suggestionsActive, setSuggestionsActive] = useState(false);
   const [value, setValue] = useState("");
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const query = e.target.value.toLowerCase();
     setValue(query);
     if (query.length > 1) {
-      const filterSuggestions = data.filter(
+      const filterSuggestions = items.filter(
         (suggestion) =>
           suggestion.toLowerCase().indexOf(query) > -1
       );
@@ -22,9 +22,10 @@ const AutoComplete = ({ data, handlePokemon }) => {
   };
 
   const handleClick = (e) => {
+    const selectedItem = e.target.innerText;
     setSuggestions([]);
-    setValue(e.target.innerText);
-    handlePokemon([e.target.innerText]);
+    setValue(selectedItem);
+    selectItem([selectedItem]);
     setSuggestionsActive(false);
   };
 
@@ -50,7 +51,7 @@ const AutoComplete = ({ data, handlePokemon }) => {
       <input
         type="text"
         value={value}
-        onChange={handleChange}
+        onChange={handleInputChange}
       />
       {suggestionsActive && <Suggestions />}
     </div>
@@ -58,4 +59,4 @@ const AutoComplete = ({ data, handlePokemon }) => {
   
 };
 
-export default AutoComplete; 
+export default AutoCompleteBar; 

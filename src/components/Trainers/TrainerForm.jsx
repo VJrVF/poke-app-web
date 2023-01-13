@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { listPokemons } from '../Services/pokemon-service';
 
 import Card from '../UI/Card';
 import LoadingIndicator from '../UI/LoadingIndicator';
-import AutoComplete from './AutocompleteBar';
+import AutoCompleteBar from './AutocompleteBar';
 import './css/TrainerForm.css';
 
-const TrainerForm = React.memo(props => {
+const TrainerForm = React.memo(({ onAddTrainer, loading }) => {
   const [name, setName] = useState('');
   const [dni, setDni] = useState('');
   const [pokemons, setPokemons] = useState([]);
@@ -13,18 +14,16 @@ const TrainerForm = React.memo(props => {
 
   const submitHandler = async (event) => {
     event.preventDefault();
-    props.onAddTrainer({ name, dni, pokemons});
+    onAddTrainer({ name, dni, pokemons });
   };
 
   useEffect(() => {
-    const url = "https://localhost:3001/v1/pokemons"
-    const fetchData = async () => {
+    async function fetchData() {
       try {
-        const response = await fetch(url);
-        const pokemons = await response.json();
+        const pokemons = await listPokemons();
         setData(pokemons);
-      } catch (e) {
-        console.log("error", e);
+      } catch (err) {
+        console.log("error", err);
       }
 
     }
@@ -59,11 +58,11 @@ const TrainerForm = React.memo(props => {
           </div>
           <div className="form-control">
             <label htmlFor="amount">Starter Pokemon</label>
-            <AutoComplete data={data} handlePokemon={setPokemons} />
+            <AutoCompleteBar items={data} selectItem={setPokemons} />
           </div>
           <div className="trainer-form__actions">
             <button type="submit">Add Trainer</button>
-            {props.loading && <LoadingIndicator />}
+            {loading && <LoadingIndicator />}
           </div>
         </form>
       </Card>

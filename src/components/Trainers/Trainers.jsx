@@ -1,57 +1,42 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 
 import TrainerForm from './TrainerForm';
 import TrainerList from './TrainerList';
 import ErrorModal from '../UI/ErrorModal';
 import Search from './Search';
+import { addTrainer, removeTrainer } from '../Services/trainer-service';
 
 const Trainers = () => {
   const [userTrainer, setUserTrainer] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
 
-  useEffect(() => {
-    console.log('RENDERING TRAINERS', userTrainer);
-  }, [userTrainer]);
-
   const filteredTrainersHandler = useCallback(filteredTrainers => {
     setUserTrainer(filteredTrainers);
   }, []);
 
-  const addTrainerHandler = trainer => {
+  const addTrainerHandler = async trainer => {
     setIsLoading(true);
-    fetch('http://localhost:3001/v1/trainers', {
-      method: 'POST',
-      body: JSON.stringify(trainer),
-      headers: { 'Content-Type': 'application/json' }
-    })
-      .then(response => {
-        setIsLoading(false);
-        return response.json();
-      })
-      .then(() => {
-        setUserTrainer(prevTrainers => [
-          ...prevTrainers,
-          { ...trainer }
-        ]);
-      });
+    try {
+      const newTrainer = await addTrainer(trainer);
+      setUserTrainer(prevTrainers => [...prevTrainers, { ...newTrainer }]);
+    } catch (err) {
+      setError(`Something went wrong. Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const removeTrainerHandler = trainerID => {
+  const removeTrainerHandler = async trainerId => {
     setIsLoading(true);
-    fetch('http://localhost:3001/v1/trainers', {
-      method: 'DELETE',
-      body: JSON.stringify(trainerID),
-      headers: { 'Content-Type': 'application/json' }
-    }).then(response => {
+    try {
+      await removeTrainer(trainerId)
+      setUserTrainer(prevTrainers => prevTrainers.filter(trainer => trainer._id !== trainerId));
+    } catch (err) {
+      setError(`Something went wrong. Error: ${error.message}`);
+    } finally {
       setIsLoading(false);
-      setUserTrainer(prevTrainers =>
-        prevTrainers.filter(trainer => trainer._id !== trainerID)
-      );
-    }).catch(error => {
-      setError('Something went wrong!');
-      setIsLoading(false);
-    });
+    }
   };
 
   const clearError = () => {
@@ -60,7 +45,7 @@ const Trainers = () => {
 
   return (
     <div className="App">
-      {error && <ErrorModal onClose={clearError}>{error}</ErrorModal>}
+      {error && <ErrorModal onClose={clearError} errorMessage={error} />}
 
       <TrainerForm
         onAddTrainer={addTrainerHandler}
@@ -71,7 +56,7 @@ const Trainers = () => {
         <Search onLoadTrainers={filteredTrainersHandler} />
         <TrainerList
           trainers={userTrainer}
-          onRemoveItem={removeTrainerHandler}
+          onRemoveTrainer={removeTrainerHandler}       
         />
       </section>
     </div>

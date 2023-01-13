@@ -1,50 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-
 import Card from '../UI/Card';
 import './css/Search.css';
+import useDebounce from './hooks/useDebounce';
+import getLoadedTrainers from './utils/getLoadedTrainers';
 
-const Search = React.memo(props => {
-  const { onLoadTrainers } = props;
+const Search = React.memo(({ onLoadTrainers }) => {
   const [enteredFilter, setEnteredFilter] = useState('');
+  const debouncedValue = useDebounce(enteredFilter, 500)
   const inputRef = useRef();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (enteredFilter === inputRef.current.value) {
-        const input =
-          enteredFilter.length === 0
-            ? ''
-            : enteredFilter;
-      
-        fetch(
-          'https://localhost:3001/v1/trainers/filterByName',
-          {
-            method: 'POST',
-            body: JSON.stringify({
-              value: input
-            }),
-            headers: { 'Content-Type': 'application/json' }
-          }
-        )
-          .then(response => response.json())
-          .then(responseData => {
-            const { data } = responseData
-            const loadedTrainers = [];
-
-            data.forEach(trainer => {
-              loadedTrainers.push({
-                name: trainer.name,
-                dni: trainer.dni
-              });
-            });
-            onLoadTrainers(loadedTrainers);
-          });
-      }
-    }, 500);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [enteredFilter, onLoadTrainers, inputRef]);
+    async function fetchData() {
+      const { loadedTrainers } = await getLoadedTrainers(enteredFilter, inputRef.current.value);
+      onLoadTrainers(loadedTrainers);
+    }
+    fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedValue])
 
   return (
     <section className="search">
