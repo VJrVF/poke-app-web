@@ -25,7 +25,6 @@ const TrainerForm = React.memo(({ onAddTrainer, loading }) => {
       } catch (err) {
         console.log("error", err);
       }
-
     }
     fetchData();
   }, []);

@@ -11,11 +11,16 @@ const Search = React.memo(({ onLoadTrainers }) => {
 
   useEffect(() => {
     async function fetchData() {
-      const { loadedTrainers } = await getLoadedTrainers(enteredFilter, inputRef.current.value);
-      onLoadTrainers(loadedTrainers);
+      try {
+        const currentFilter = inputRef.current.value;
+        const { loadedTrainers } = await getLoadedTrainers(enteredFilter, currentFilter);
+        onLoadTrainers(loadedTrainers);
+      } catch (err) {
+        console.log("error", err);
+      }
     }
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedValue])
 
   return (
